@@ -1,0 +1,9 @@
+[2024-06-24 15:00:04] Traceback (most recent call last):
+[2024-06-24 15:00:04]   File "F:\ZHYQ\Git_project\FactoryTool\main.py", line 623, in OnInit
+[2024-06-24 15:00:04]     [2024-06-24 15:00:04] self.factory_frame = FactoryFrame(None, wx.ID_ANY, "")[2024-06-24 15:00:04] 
+[2024-06-24 15:00:04]   File "F:\ZHYQ\Git_project\FactoryTool\main.py", line 150, in __init__
+[2024-06-24 15:00:04]     [2024-06-24 15:00:04] self.__init_excel()[2024-06-24 15:00:04] 
+[2024-06-24 15:00:04]   File "F:\ZHYQ\Git_project\FactoryTool\main.py", line 519, in __init_excel
+[2024-06-24 15:00:04]     [2024-06-24 15:00:04] self.read_excel_handler = file_handler.ExcelHandler(os.path.join(PROJECT_ABSOLUTE_PATH, excel_flie[0]))  # Init Excel[2024-06-24 15:00:04] 
+[2024-06-24 15:00:04] IndexError[2024-06-24 15:00:04] : [2024-06-24 15:00:04] list index out of range[2024-06-24 15:00:04] 
+[2024-06-24 15:00:04] OnInit returned false, exiting...[2024-06-24 15:00:04] 

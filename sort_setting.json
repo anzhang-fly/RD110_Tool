@@ -1,0 +1,8 @@
+{
+    "info": [ ["黄红绿灯", "det_file_space", 1],
+              ["音频", "det_signal", 1],
+              ["有线电磁阀", "det_signal", 1],
+              ["无线电磁阀", "det_signal", 1],
+              ["气体浓度", "det_signal", 0],
+              ["4G通讯", "det_signal", 0]]
+}

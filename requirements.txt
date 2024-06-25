@@ -1,0 +1,6 @@
+Pypubsub==4.0.3
+wxPython==4.1.1
+openpyxl==3.0.7
+pubsub==0.1.2
+pyserial==3.5
+
