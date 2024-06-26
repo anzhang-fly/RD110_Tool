@@ -62,3 +62,21 @@ finally:
         if ser.is_open:
             ser.close()
         thread.join()
+
+
+import json
+# 解析JSON字符串
+json_string = '{"name": "Alice", "age": 25, "city": "New York"}'
+data = json.loads(json_string)
+print(data)
+print(data['name'])
+print(data['age'])
+
+# 将Python对象转换为JSON字符串
+data = {
+    "name": "Bob",
+    "age": 30,
+    "city": "San Francisco"
+}
+json_string = json.dumps(data)
+print(json_string)
