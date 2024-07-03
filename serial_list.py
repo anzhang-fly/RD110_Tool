@@ -130,5 +130,6 @@ if __name__ == '__main__':
     ser = SerialDetection()
     ser.setDaemon(False)
     ser.start()
+    # main()
 
 
