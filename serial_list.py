@@ -54,10 +54,10 @@ class SerialDetection(threading.Thread):
                     # serial_port = self.get_com_number("0x2C7C:0x6005", "x.8")
                     # serial_port.extend(self.get_com_number("0x2C7C:0x6005", "x.5"))
                     serial_port = self.get_com_number("0x10C4:0xEA60")
-                    sorted_serial_port = sorted(serial_port, key = lambda x: int(x[3:]))
+                    sorted_serial_port = sorted(serial_port, key=lambda x: int(x[3:]))
                     # serial_port.extend(self.get_com_number("0x2C7C:0x6002"))
                     # serial_port.extend(self.get_com_number("0x2C7C:0x6005"))
-                    # print("设备列表为{}".format(serial_port))
+                    print("设备列表为{}".format(sorted_serial_port))
                     pub.sendMessage('serialUpdate', arg1=sorted_serial_port)
             time.sleep(1)
 
@@ -82,15 +82,19 @@ class SerialPortThread(threading.Thread):
             if self.ser.in_waiting > 0:
                 data = self.ser.readline().decode("utf-8").strip()
                 # data = self.ser.read(self.ser.in_waiting)
-                data_list.append(data)
-                data_list.append(self.ser.port)
-                pub.sendMessage('serialData', arg1 = data_list)
+                # data_list.append(data)
+                # data_list.append(self.ser.port)
+                # print([data, self.ser.port])
+                pub.sendMessage('serialData', arg1=[data, self.ser.port])
             # 添加一些延时以避免CPU占用过高
-            time.sleep(0.5)
+            time.sleep(0.2)
 
     def send_data(self, data):
         if self.ser and self.ser.is_open:
+            # self.ser.reset_input_buffer()
+            # self.ser.reset_output_buffer()
             self.ser.write(data.encode("utf-8"))
+            # self.ser.write(data)
             print(f"Sent to {self.port}: {data}")
 
     def stop(self):
@@ -99,10 +103,14 @@ class SerialPortThread(threading.Thread):
             self.ser.close()
         print(f"Stopped thread for {self.port}")
 
+    def begin(self):
+        self.ser.open()
+        print(f"begin thread for {self.port}")
+
 
 # 定义主函数来初始化和控制所有串口
 def main():
-    ports = [f'COM{i}' for i in range(1, 17)]  # 假设有16个串口，名称为COM1到COM16
+    ports = [f'COM{i}' for i in range(1, 8)]  # 假设有16个串口，名称为COM1到COM16
     threads = []
 
     # 创建并启动线程
@@ -115,7 +123,7 @@ def main():
         while True:
             # 示例：发送数据到所有串口
             for thread in threads:
-                thread.send_data(b'Test data\n')
+                thread.send_data(b'A3000003F\r\n')
             time.sleep(5)  # 每5秒发送一次数据
     except KeyboardInterrupt:
         print("Stopping all threads...")
@@ -127,9 +135,9 @@ def main():
 
 
 if __name__ == '__main__':
-    ser = SerialDetection()
-    ser.setDaemon(False)
-    ser.start()
-    # main()
+    # ser = SerialDetection()
+    # ser.setDaemon(False)
+    # ser.start()
+    main()
 
 
