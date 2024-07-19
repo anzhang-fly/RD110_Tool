@@ -11,6 +11,7 @@ import time
 import threading
 import serial.tools.list_ports
 from pubsub import pub
+import json
 
 
 class SerialDetection(threading.Thread):
@@ -80,12 +81,18 @@ class SerialPortThread(threading.Thread):
         while self.running:
             # 读取数据
             if self.ser.in_waiting > 0:
-                data = self.ser.readline().decode("utf-8").strip()
+                data = self.ser.readline().decode("utf-8", errors='ignore').strip()
+                # print(data)
+                result = self.process_json_data(data)
+                if result is not None:
+                    pub.sendMessage('serialData', arg1=[result, self.ser.port])
+                if "A+" in data:
+                    pub.sendMessage('serialData1', arg1=[data, self.ser.port])
                 # data = self.ser.read(self.ser.in_waiting)
                 # data_list.append(data)
                 # data_list.append(self.ser.port)
                 # print([data, self.ser.port])
-                pub.sendMessage('serialData', arg1=[data, self.ser.port])
+                # pub.sendMessage('serialData', arg1=[data, self.ser.port])
             # 添加一些延时以避免CPU占用过高
             time.sleep(0.2)
 
@@ -106,6 +113,21 @@ class SerialPortThread(threading.Thread):
     def begin(self):
         self.ser.open()
         print(f"begin thread for {self.port}")
+
+    def process_json_data(self, json_data):
+        try:
+            # 尝试解析JSON数据
+            parsed_data = json.loads(json_data)
+
+            # 如果解析成功，进行下一步处理
+            # print("JSON格式正确，进行下一步处理")
+            # 在这里进行你需要的处理
+            return parsed_data
+
+        except json.JSONDecodeError:
+            # 如果解析失败，不进行任何处理
+            print("{}口JSON格式错误".format(self.ser.port))
+            return None
 
 
 # 定义主函数来初始化和控制所有串口

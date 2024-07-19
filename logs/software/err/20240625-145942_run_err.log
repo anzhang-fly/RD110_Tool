@@ -1,9 +1,0 @@
-[2024-06-25 14:59:42] Traceback (most recent call last):
-[2024-06-25 14:59:42]   File "F:\ZHYQ\Git_project\RD110_Factory\main.py", line 624, in OnInit
-[2024-06-25 14:59:42]     [2024-06-25 14:59:42] self.factory_frame = FactoryFrame(None, wx.ID_ANY, "")[2024-06-25 14:59:42] 
-[2024-06-25 14:59:42]   File "F:\ZHYQ\Git_project\RD110_Factory\main.py", line 181, in __init__
-[2024-06-25 14:59:42]     [2024-06-25 14:59:42] self.__set_properties()[2024-06-25 14:59:42] 
-[2024-06-25 14:59:42]   File "F:\ZHYQ\Git_project\RD110_Factory\main.py", line 188, in __set_properties
-[2024-06-25 14:59:42]     [2024-06-25 14:59:42] self.button_start_list[i].SetMinSize((150, 50))[2024-06-25 14:59:42] 
-[2024-06-25 14:59:42] IndexError[2024-06-25 14:59:42] : [2024-06-25 14:59:42] list index out of range[2024-06-25 14:59:42] 
-[2024-06-25 14:59:42] OnInit returned false, exiting...[2024-06-25 14:59:42] 

@@ -28,7 +28,7 @@ class ExcelHandler(object):
             wb = openpyxl.Workbook()   # 创建一个excel表格
             wb.save(self.file)          # 保存表格
         self.wb = openpyxl.load_workbook(self.file)  # 加载已存在的表格
-        self.ws = self.wb[self.wb.sheetnames[0]] # 选择表格的第一个sheet
+        self.ws = self.wb[self.wb.sheetnames[0]]  # 选择表格的第一个sheet
 
     # 获取sheet的总行数和总列数
     def get_rows_columns(self):

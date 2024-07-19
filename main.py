@@ -25,7 +25,6 @@ from log_redirect import RedirectErr, RedirectStd
 from pubsub import pub
 from queue import Queue
 import codecs
-import json
 import glob
 import serial
 import json
@@ -45,6 +44,7 @@ class Panel1(wx.Panel):
         self.port_g = ''
 
         self.comx_nongdu = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        self.wavelength = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         # 标气浓度数组
         self.Std_nongdu_l = [0, 5000, 10000, 30000, 80000, 120000, 200000]
         self.Std_nongdu_h = [200000, 300000, 500000, 800000, 1000000]
@@ -62,6 +62,21 @@ class Panel1(wx.Panel):
         self.data_50 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         self.data_80 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         self.data_100 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+
+        # 低浓度数组
+        self.Adata_0 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        self.Adata_05 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        self.Adata_1 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        self.Adata_3 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        self.Adata_8 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        self.Adata_12 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        self.Adata_20 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        # 高浓度数组
+        self.Adata_20_1 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        self.Adata_30 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        self.Adata_50 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        self.Adata_80 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        self.Adata_100 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
         self.fit_coefficients_matrix_l = np.zeros((16, 4))  # 存放低浓度拟合系数的二维数组
         self.fit_coefficients_matrix_h = np.zeros((16, 4))  # 存放低浓度拟合系数的二维数组
@@ -110,8 +125,17 @@ class Panel1(wx.Panel):
         self.WRITE_XISHU_HIGH = wx.Button(self, wx.ID_ANY, ("写入高标系数"))
         self.Bind(wx.EVT_BUTTON, self.WRITE_XISHU_HIGH_OP, self.WRITE_XISHU_HIGH)
 
-        self.jump_button1 = wx.Button(self, wx.ID_ANY, ("切换界面"))
+        self.jump_button1 = wx.Button(self, wx.ID_ANY, ("切换至拟合界面"))
         self.Bind(wx.EVT_BUTTON, self.jump_button1_op, self.jump_button1)
+
+        self.jump_button2 = wx.Button(self, wx.ID_ANY, ("切换至测试界面"))
+        self.Bind(wx.EVT_BUTTON, self.jump_button1_op2, self.jump_button2)
+
+        self.zero_jiaozhun = wx.Button(self, wx.ID_ANY, ("零点校准"))
+        self.Bind(wx.EVT_RADIOBUTTON, self.zero_jiaozhun_op, self.zero_jiaozhun)
+
+        self.jiaozhun_20 = wx.Button(self, wx.ID_ANY, ("20%校准"))
+        self.Bind(wx.EVT_RADIOBUTTON, self.jiaozhun_20_op, self.jiaozhun_20)
 
         self.cb1 = wx.ComboBox(self, wx.ID_ANY, choices=self.select1, style=wx.CB_READONLY)
         self.cb1.SetSelection(0)
@@ -201,6 +225,12 @@ class Panel1(wx.Panel):
         sizer_3.Add(self.CLOSE, 0, 0, 0)
         sizer_3.Add((10, 0), 0, 0, 0)
         sizer_3.Add(self.jump_button1, 0, 0, 0)
+        sizer_3.Add((10, 0), 0, 0, 0)
+        sizer_3.Add(self.jump_button2, 0, 0, 0)
+        sizer_3.Add((10, 0), 0, 0, 0)
+        sizer_3.Add(self.zero_jiaozhun, 0, 0, 0)
+        sizer_3.Add((10, 0), 0, 0, 0)
+        sizer_3.Add(self.jiaozhun_20, 0, 0, 0)
 
         sizer_8.Add(self.SelectStatictext2, 0, 0, 0)
         sizer_8.Add((10, 0), 0, 0, 0)
@@ -277,6 +307,20 @@ class Panel1(wx.Panel):
         self.GetParent().fit_coefficients_matrix_h2 = self.fit_coefficients_matrix_h
         self.GetParent().switch_panel(self.GetParent().panel2)
 
+    # 切换至测试模式
+    def jump_button1_op2(self, event):
+        self.GetParent().switch_panel(self.GetParent().panel3)
+
+    # 零点校准
+    def zero_jiaozhun_op(self, event):
+        for thread in self.GetParent().Serial_threads:
+            thread.send_data('B8000008F\r\n')
+
+    # 20%校准
+    def jiaozhun_20_op(self, event):
+        for thread in self.GetParent().Serial_threads:
+            thread.send_data('C2000002F\r\n')
+
     # 记录低标数据
     def RECORD_DATA_LOW_OP(self, event):
         low_nongdu_select = self.cb1.GetStringSelection()
@@ -285,31 +329,53 @@ class Panel1(wx.Panel):
         if low_nongdu_select == 'N2':
             for i in range(16):
                 self.data_0[i] = self.comx_nongdu[i]
-                self.ListCtrl3.SetItem(i, 0, self.data_0[i])
+                self.Adata_0[i] = self.wavelength[i]
+                self.ListCtrl3.SetItem(i, 0, str(self.data_0[i]))
+            self.GetParent().excel_write(2, self.data_0)
+            self.GetParent().excel_write1(2, self.Adata_0)
+            print(self.data_0)
         elif low_nongdu_select == '0.5%':
             for i in range(16):
                 self.data_05[i] = self.comx_nongdu[i]
-                self.ListCtrl3.SetItem(i, 0, self.data_05[i])
+                self.Adata_05[i] = self.wavelength[i]
+                self.ListCtrl3.SetItem(i, 0, str(self.data_05[i]))
+            self.GetParent().excel_write(3, self.data_05)
+            self.GetParent().excel_write1(3, self.Adata_05)
         elif low_nongdu_select == '1%':
             for i in range(16):
                 self.data_1[i] = self.comx_nongdu[i]
-                self.ListCtrl3.SetItem(i, 0, self.data_1[i])
+                self.Adata_1[i] = self.wavelength[i]
+                self.ListCtrl3.SetItem(i, 0, str(self.data_1[i]))
+            self.GetParent().excel_write(4, self.data_1)
+            self.GetParent().excel_write1(4, self.Adata_1)
         elif low_nongdu_select == '3%':
             for i in range(16):
                 self.data_3[i] = self.comx_nongdu[i]
-                self.ListCtrl3.SetItem(i, 0, self.data_3[i])
+                self.Adata_3[i] = self.wavelength[i]
+                self.ListCtrl3.SetItem(i, 0, str(self.data_3[i]))
+            self.GetParent().excel_write(5, self.data_3)
+            self.GetParent().excel_write1(5, self.Adata_3)
         elif low_nongdu_select == '8%':
             for i in range(16):
                 self.data_8[i] = self.comx_nongdu[i]
-                self.ListCtrl3.SetItem(i, 0, self.data_8[i])
+                self.Adata_8[i] = self.wavelength[i]
+                self.ListCtrl3.SetItem(i, 0, str(self.data_8[i]))
+            self.GetParent().excel_write(6, self.data_8)
+            self.GetParent().excel_write1(6, self.Adata_8)
         elif low_nongdu_select == '12%':
             for i in range(16):
                 self.data_12[i] = self.comx_nongdu[i]
-                self.ListCtrl3.SetItem(i, 0, self.data_12[i])
+                self.Adata_12[i] = self.wavelength[i]
+                self.ListCtrl3.SetItem(i, 0, str(self.data_12[i]))
+            self.GetParent().excel_write(7, self.data_12)
+            self.GetParent().excel_write1(7, self.Adata_12)
         elif low_nongdu_select == '20%':
             for i in range(16):
                 self.data_20[i] = self.comx_nongdu[i]
-                self.ListCtrl3.SetItem(i, 0, self.data_20[i])
+                self.Adata_20[i] = self.wavelength[i]
+                self.ListCtrl3.SetItem(i, 0, str(self.data_20[i]))
+            self.GetParent().excel_write(8, self.data_20)
+            self.GetParent().excel_write1(8, self.Adata_20)
 
     # 记录高标数据
     def RECORD_DATA_HIGH_OP(self, event):
@@ -317,23 +383,38 @@ class Panel1(wx.Panel):
         if high_nongdu_select == '20%':
             for i in range(16):
                 self.data_20_1[i] = self.comx_nongdu[i]
+                self.Adata_20_1[i] = self.wavelength[i]
                 self.ListCtrl3.SetItem(i, 0, str(self.data_20_1[i]))
+            self.GetParent().excel_write(10, self.data_20_1)
+            self.GetParent().excel_write1(10, self.Adata_20_1)
         elif high_nongdu_select == '30%':
             for i in range(16):
                 self.data_30[i] = self.comx_nongdu[i]
+                self.Adata_30[i] = self.wavelength[i]
                 self.ListCtrl3.SetItem(i, 0, str(self.data_30[i]))
+            self.GetParent().excel_write(11, self.data_30)
+            self.GetParent().excel_write1(11, self.Adata_30)
         elif high_nongdu_select == '50%':
             for i in range(16):
                 self.data_50[i] = self.comx_nongdu[i]
+                self.Adata_50[i] = self.wavelength[i]
                 self.ListCtrl3.SetItem(i, 0, str(self.data_50[i]))
+            self.GetParent().excel_write(12, self.data_50)
+            self.GetParent().excel_write1(12, self.Adata_50)
         elif high_nongdu_select == '80%':
             for i in range(16):
                 self.data_80[i] = self.comx_nongdu[i]
+                self.Adata_80[i] = self.wavelength[i]
                 self.ListCtrl3.SetItem(i, 0, str(self.data_80[i]))
+            self.GetParent().excel_write(13, self.data_80)
+            self.GetParent().excel_write1(13, self.Adata_80)
         elif high_nongdu_select == '100%':
             for i in range(16):
                 self.data_100[i] = self.comx_nongdu[i]
+                self.Adata_100[i] = self.wavelength[i]
                 self.ListCtrl3.SetItem(i, 0, str(self.data_100[i]))
+            self.GetParent().excel_write(14, self.data_100)
+            self.GetParent().excel_write1(14, self.Adata_100)
 
     # 查看低标数据
     def BD_DATA_LOW_OP(self, event):
@@ -375,24 +456,31 @@ class Panel1(wx.Panel):
             com_matrix[i][4] = self.data_8[i]
             com_matrix[i][5] = self.data_12[i]
             com_matrix[i][6] = self.data_20[i]
-
+        #  polyfit返回值，[A,B,C,D],从左到右依次为三次项、二次项、一次项、截距。
         for i in range(16):
-            self.fit_coefficients_matrix_l[i] = np.polyfit(com_matrix[i], y, 3)
+            if np.all(com_matrix[i] == 0):
+                pass
+                # print("com_matrix[{}]全0".format(i))
+            else:
+                self.fit_coefficients_matrix_l[i] = np.polyfit(com_matrix[i], y, 3)
         print(self.fit_coefficients_matrix_l)
 
     # 高标数据拟合
     def NIHE_HIGH_OP(self, event):
         y = np.array(self.Std_nongdu_h)
-        com_matrix = np.zeros((16, 7))  # 存放用于拟合的原始数据
+        com_matrix = np.zeros((16, 5))  # 存放用于拟合的原始数据
         for i in range(16):
-            com_matrix[i][0] = self.data_20[i]
+            com_matrix[i][0] = self.data_20_1[i]
             com_matrix[i][1] = self.data_30[i]
             com_matrix[i][2] = self.data_50[i]
             com_matrix[i][3] = self.data_80[i]
             com_matrix[i][4] = self.data_100[i]
 
         for i in range(16):
-            self.fit_coefficients_matrix_h[i] = np.polyfit(com_matrix[i], y, 3)
+            if np.all(com_matrix[i] == 0):
+                print("com_matrix[{}]全0".format(i))
+            else:
+                self.fit_coefficients_matrix_h[i] = np.polyfit(com_matrix[i], y, 3)
         print(self.fit_coefficients_matrix_h)
 
     # 写入低浓度系数
@@ -408,67 +496,67 @@ class Panel1(wx.Panel):
             B3[i] = self.fit_coefficients_matrix_l[i][0]
         for thread in self.GetParent().Serial_threads:
             if thread.port == 'COM1':
-                data = {"WRITE": {"BD_ARRAY": [str(inception[0]), str(B1[0]), str(B2[0]), str(B3[0])]}}
+                data = {"WRITE": {"BD_ARRAY": [inception[0], B1[0], B2[0], B3[0]]}}
                 json_data = json.dumps(data)
                 thread.send_data(json_data + '\r\n')
             elif thread.port == 'COM2':
-                data = {"WRITE": {"BD_ARRAY": [str(inception[1]), str(B1[1]), str(B2[1]), str(B3[1])]}}
+                data = {"WRITE": {"BD_ARRAY": [inception[1], B1[1], B2[1], B3[1]]}}
                 json_data = json.dumps(data)
                 thread.send_data(json_data + '\r\n')
             elif thread.port == 'COM3':
-                data = {"WRITE": {"BD_ARRAY": [str(inception[2]), str(B1[2]), str(B2[2]), str(B3[2])]}}
+                data = {"WRITE": {"BD_ARRAY": [inception[2], B1[2], B2[2], B3[2]]}}
                 json_data = json.dumps(data)
                 thread.send_data(json_data + '\r\n')
             elif thread.port == 'COM4':
-                data = {"WRITE": {"BD_ARRAY": [str(inception[3]), str(B1[3]), str(B2[3]), str(B3[3])]}}
+                data = {"WRITE": {"BD_ARRAY": [inception[3], B1[3], B2[3], B3[3]]}}
                 json_data = json.dumps(data)
                 thread.send_data(json_data + '\r\n')
             elif thread.port == 'COM5':
-                data = {"WRITE": {"BD_ARRAY": [str(inception[4]), str(B1[4]), str(B2[4]), str(B3[4])]}}
+                data = {"WRITE": {"BD_ARRAY": [inception[4], B1[4], B2[4], B3[4]]}}
                 json_data = json.dumps(data)
                 thread.send_data(json_data + '\r\n')
             elif thread.port == 'COM6':
-                data = {"WRITE": {"BD_ARRAY": [str(inception[5]), str(B1[5]), str(B2[5]), str(B3[5])]}}
+                data = {"WRITE": {"BD_ARRAY": [inception[5], B1[5], B2[5], B3[5]]}}
                 json_data = json.dumps(data)
                 thread.send_data(json_data + '\r\n')
             elif thread.port == 'COM7':
-                data = {"WRITE": {"BD_ARRAY": [str(inception[6]), str(B1[6]), str(B2[6]), str(B3[6])]}}
+                data = {"WRITE": {"BD_ARRAY": [inception[6], B1[6], B2[6], B3[6]]}}
                 json_data = json.dumps(data)
                 thread.send_data(json_data + '\r\n')
             elif thread.port == 'COM8':
-                data = {"WRITE": {"BD_ARRAY": [str(inception[7]), str(B1[7]), str(B2[7]), str(B3[7])]}}
+                data = {"WRITE": {"BD_ARRAY": [inception[7], B1[7], B2[7], B3[7]]}}
                 json_data = json.dumps(data)
                 thread.send_data(json_data + '\r\n')
             elif thread.port == 'COM9':
-                data = {"WRITE": {"BD_ARRAY": [str(inception[8]), str(B1[8]), str(B2[8]), str(B3[8])]}}
+                data = {"WRITE": {"BD_ARRAY": [inception[8], B1[8], B2[8], B3[8]]}}
                 json_data = json.dumps(data)
                 thread.send_data(json_data + '\r\n')
             elif thread.port == 'COM10':
-                data = {"WRITE": {"BD_ARRAY": [str(inception[9]), str(B1[9]), str(B2[9]), str(B3[9])]}}
+                data = {"WRITE": {"BD_ARRAY": [inception[9], B1[9], B2[9], B3[9]]}}
                 json_data = json.dumps(data)
                 thread.send_data(json_data + '\r\n')
             elif thread.port == 'COM11':
-                data = {"WRITE": {"BD_ARRAY": [str(inception[10]), str(B1[10]), str(B2[10]), str(B3[10])]}}
+                data = {"WRITE": {"BD_ARRAY": [inception[10], B1[10], B2[10], B3[10]]}}
                 json_data = json.dumps(data)
                 thread.send_data(json_data + '\r\n')
             elif thread.port == 'COM12':
-                data = {"WRITE": {"BD_ARRAY": [str(inception[11]), str(B1[11]), str(B2[11]), str(B3[11])]}}
+                data = {"WRITE": {"BD_ARRAY": [inception[11], B1[11], B2[11], B3[11]]}}
                 json_data = json.dumps(data)
                 thread.send_data(json_data + '\r\n')
             elif thread.port == 'COM13':
-                data = {"WRITE": {"BD_ARRAY": [str(inception[12]), str(B1[12]), str(B2[12]), str(B3[12])]}}
+                data = {"WRITE": {"BD_ARRAY": [inception[12], B1[12], B2[12], B3[12]]}}
                 json_data = json.dumps(data)
                 thread.send_data(json_data + '\r\n')
             elif thread.port == 'COM14':
-                data = {"WRITE": {"BD_ARRAY": [str(inception[13]), str(B1[13]), str(B2[13]), str(B3[13])]}}
+                data = {"WRITE": {"BD_ARRAY": [inception[13], B1[13], B2[13], B3[13]]}}
                 json_data = json.dumps(data)
                 thread.send_data(json_data + '\r\n')
             elif thread.port == 'COM15':
-                data = {"WRITE": {"BD_ARRAY": [str(inception[14]), str(B1[14]), str(B2[14]), str(B3[14])]}}
+                data = {"WRITE": {"BD_ARRAY": [inception[14], B1[14], B2[14], B3[14]]}}
                 json_data = json.dumps(data)
                 thread.send_data(json_data + '\r\n')
             elif thread.port == 'COM16':
-                data = {"WRITE": {"BD_ARRAY": [str(inception[15]), str(B1[15]), str(B2[15]), str(B3[15])]}}
+                data = {"WRITE": {"BD_ARRAY": [inception[15], B1[15], B2[15], B3[15]]}}
                 json_data = json.dumps(data)
                 thread.send_data(json_data + '\r\n')
 
@@ -484,67 +572,67 @@ class Panel1(wx.Panel):
             B3[i] = self.fit_coefficients_matrix_h[i][0]
         for thread in self.GetParent().Serial_threads:
             if thread.port == 'COM1':
-                data = {"WRITE_H": {"BD_ARRAY": [str(inception[0]), str(B1[0]), str(B2[0]), str(B3[0])]}}
+                data = {"WRITE_H": {"BD_ARRAY": [inception[0], B1[0], B2[0], B3[0]]}}
                 json_data = json.dumps(data)
                 thread.send_data(json_data + '\r\n')
             elif thread.port == 'COM2':
-                data = {"WRITE_H": {"BD_ARRAY": [str(inception[1]), str(B1[1]), str(B2[1]), str(B3[1])]}}
+                data = {"WRITE_H": {"BD_ARRAY": [inception[1], B1[1], B2[1], B3[1]]}}
                 json_data = json.dumps(data)
                 thread.send_data(json_data + '\r\n')
             elif thread.port == 'COM3':
-                data = {"WRITE_H": {"BD_ARRAY": [str(inception[2]), str(B1[2]), str(B2[2]), str(B3[2])]}}
+                data = {"WRITE_H": {"BD_ARRAY": [inception[2], B1[2], B2[2], B3[2]]}}
                 json_data = json.dumps(data)
                 thread.send_data(json_data + '\r\n')
             elif thread.port == 'COM4':
-                data = {"WRITE_H": {"BD_ARRAY": [str(inception[3]), str(B1[3]), str(B2[3]), str(B3[3])]}}
+                data = {"WRITE_H": {"BD_ARRAY": [inception[3], B1[3], B2[3], B3[3]]}}
                 json_data = json.dumps(data)
                 thread.send_data(json_data + '\r\n')
             elif thread.port == 'COM5':
-                data = {"WRITE_H": {"BD_ARRAY": [str(inception[4]), str(B1[4]), str(B2[4]), str(B3[4])]}}
+                data = {"WRITE_H": {"BD_ARRAY": [inception[4], B1[4], B2[4], B3[4]]}}
                 json_data = json.dumps(data)
                 thread.send_data(json_data + '\r\n')
             elif thread.port == 'COM6':
-                data = {"WRITE_H": {"BD_ARRAY": [str(inception[5]), str(B1[5]), str(B2[5]), str(B3[5])]}}
+                data = {"WRITE_H": {"BD_ARRAY": [inception[5], B1[5], B2[5], B3[5]]}}
                 json_data = json.dumps(data)
                 thread.send_data(json_data + '\r\n')
             elif thread.port == 'COM7':
-                data = {"WRITE_H": {"BD_ARRAY": [str(inception[6]), str(B1[6]), str(B2[6]), str(B3[6])]}}
+                data = {"WRITE_H": {"BD_ARRAY": [inception[6], B1[6], B2[6], B3[6]]}}
                 json_data = json.dumps(data)
                 thread.send_data(json_data + '\r\n')
             elif thread.port == 'COM8':
-                data = {"WRITE_H": {"BD_ARRAY": [str(inception[7]), str(B1[7]), str(B2[7]), str(B3[7])]}}
+                data = {"WRITE_H": {"BD_ARRAY": [inception[7], B1[7], B2[7], B3[7]]}}
                 json_data = json.dumps(data)
                 thread.send_data(json_data + '\r\n')
             elif thread.port == 'COM9':
-                data = {"WRITE_H": {"BD_ARRAY": [str(inception[8]), str(B1[8]), str(B2[8]), str(B3[8])]}}
+                data = {"WRITE_H": {"BD_ARRAY": [inception[8], B1[8], B2[8], B3[8]]}}
                 json_data = json.dumps(data)
                 thread.send_data(json_data + '\r\n')
             elif thread.port == 'COM10':
-                data = {"WRITE_H": {"BD_ARRAY": [str(inception[9]), str(B1[9]), str(B2[9]), str(B3[9])]}}
+                data = {"WRITE_H": {"BD_ARRAY": [inception[9], B1[9], B2[9], B3[9]]}}
                 json_data = json.dumps(data)
                 thread.send_data(json_data + '\r\n')
             elif thread.port == 'COM11':
-                data = {"WRITE_H": {"BD_ARRAY": [str(inception[10]), str(B1[10]), str(B2[10]), str(B3[10])]}}
+                data = {"WRITE_H": {"BD_ARRAY": [inception[10], B1[10], B2[10], B3[10]]}}
                 json_data = json.dumps(data)
                 thread.send_data(json_data + '\r\n')
             elif thread.port == 'COM12':
-                data = {"WRITE_H": {"BD_ARRAY": [str(inception[11]), str(B1[11]), str(B2[11]), str(B3[11])]}}
+                data = {"WRITE_H": {"BD_ARRAY": [inception[11], B1[11], B2[11], B3[11]]}}
                 json_data = json.dumps(data)
                 thread.send_data(json_data + '\r\n')
             elif thread.port == 'COM13':
-                data = {"WRITE_H": {"BD_ARRAY": [str(inception[12]), str(B1[12]), str(B2[12]), str(B3[12])]}}
+                data = {"WRITE_H": {"BD_ARRAY": [inception[12], B1[12], B2[12], B3[12]]}}
                 json_data = json.dumps(data)
                 thread.send_data(json_data + '\r\n')
             elif thread.port == 'COM14':
-                data = {"WRITE_H": {"BD_ARRAY": [str(inception[13]), str(B1[13]), str(B2[13]), str(B3[13])]}}
+                data = {"WRITE_H": {"BD_ARRAY": [inception[13], B1[13], B2[13], B3[13]]}}
                 json_data = json.dumps(data)
                 thread.send_data(json_data + '\r\n')
             elif thread.port == 'COM15':
-                data = {"WRITE_H": {"BD_ARRAY": [str(inception[14]), str(B1[14]), str(B2[14]), str(B3[14])]}}
+                data = {"WRITE_H": {"BD_ARRAY": [inception[14], B1[14], B2[14], B3[14]]}}
                 json_data = json.dumps(data)
                 thread.send_data(json_data + '\r\n')
             elif thread.port == 'COM16':
-                data = {"WRITE_H": {"BD_ARRAY": [str(inception[15]), str(B1[15]), str(B2[15]), str(B3[15])]}}
+                data = {"WRITE_H": {"BD_ARRAY": [inception[15], B1[15], B2[15], B3[15]]}}
                 json_data = json.dumps(data)
                 thread.send_data(json_data + '\r\n')
 
@@ -684,7 +772,7 @@ class Panel2(wx.Panel):
         self.READ_XISHU_HIGH = wx.Button(self, wx.ID_ANY, ("读取高标系数"))
         self.Bind(wx.EVT_BUTTON, self.READ_XISHU_HIGH_OP, self.READ_XISHU_HIGH)
 
-        self.jump_button = wx.Button(self, wx.ID_ANY, ("切换界面"))
+        self.jump_button = wx.Button(self, wx.ID_ANY, ("切换至标定界面"))
         self.Bind(wx.EVT_BUTTON, self.jump_button_op, self.jump_button)
 
         self.ListCtrl4 = wx.ListCtrl(self, -1, style=wx.LC_HRULES | wx.LC_REPORT | wx.LC_SINGLE_SEL | wx.LC_VRULES)
@@ -755,17 +843,17 @@ class Panel2(wx.Panel):
 
     def BD_RESULT_LOW_OP(self, event):
         for i in range(16):
-            self.ListCtrl5.SetItem(i, 0, str(self.GetParent().fit_coefficients_matrix_l2[i][0]))
-            self.ListCtrl5.SetItem(i, 1, str(self.GetParent().fit_coefficients_matrix_l2[i][1]))
-            self.ListCtrl5.SetItem(i, 2, str(self.GetParent().fit_coefficients_matrix_l2[i][2]))
-            self.ListCtrl5.SetItem(i, 3, str(self.GetParent().fit_coefficients_matrix_l2[i][3]))
+            self.ListCtrl4.SetItem(i, 0, str(self.GetParent().fit_coefficients_matrix_l2[i][3]))
+            self.ListCtrl4.SetItem(i, 1, str(self.GetParent().fit_coefficients_matrix_l2[i][2]))
+            self.ListCtrl4.SetItem(i, 2, str(self.GetParent().fit_coefficients_matrix_l2[i][1]))
+            self.ListCtrl4.SetItem(i, 3, str(self.GetParent().fit_coefficients_matrix_l2[i][0]))
 
     def BD_RESULT_HIGH_OP(self, event):
         for i in range(16):
-            self.ListCtrl5.SetItem(i, 0, str(self.GetParent().fit_coefficients_matrix_h2[i][0]))
-            self.ListCtrl5.SetItem(i, 1, str(self.GetParent().fit_coefficients_matrix_h2[i][1]))
-            self.ListCtrl5.SetItem(i, 2, str(self.GetParent().fit_coefficients_matrix_h2[i][2]))
-            self.ListCtrl5.SetItem(i, 3, str(self.GetParent().fit_coefficients_matrix_h2[i][3]))
+            self.ListCtrl4.SetItem(i, 0, str(self.GetParent().fit_coefficients_matrix_h2[i][3]))
+            self.ListCtrl4.SetItem(i, 1, str(self.GetParent().fit_coefficients_matrix_h2[i][2]))
+            self.ListCtrl4.SetItem(i, 2, str(self.GetParent().fit_coefficients_matrix_h2[i][1]))
+            self.ListCtrl4.SetItem(i, 3, str(self.GetParent().fit_coefficients_matrix_h2[i][0]))
 
     def READ_XISHU_LOW_OP(self, event):
         for thread in self.GetParent().Serial_threads:
@@ -780,6 +868,53 @@ class Panel2(wx.Panel):
             thread.send_data(json_data + '\r\n')
 
 
+class Panel3(wx.Panel):
+    def __init__(self, parent):
+        super(Panel3, self).__init__(parent)
+
+        self.jump_button = wx.Button(self, wx.ID_ANY, ("切换至标定界面"))
+        self.Bind(wx.EVT_BUTTON, self.jump_button_op_2, self.jump_button)
+
+        self.ListCtrl7 = wx.ListCtrl(self, -1, style=wx.LC_HRULES | wx.LC_REPORT | wx.LC_SINGLE_SEL | wx.LC_VRULES)
+        self.ListCtrl7.SetMinSize((720, 400))
+        # 在报表视图模式向列表添加新列
+        self.ListCtrl7.AppendColumn((u"端口"), format=wx.LIST_FORMAT_CENTER, width=70)
+        self.ListCtrl7.AppendColumn((u"浓度"), format=wx.LIST_FORMAT_CENTER, width=70)
+        self.ListCtrl7.AppendColumn((u"波长温度点"), format=wx.LIST_FORMAT_CENTER, width=70)
+        self.ListCtrl7.AppendColumn((u"气压"), format=wx.LIST_FORMAT_CENTER, width=70)
+        self.ListCtrl7.AppendColumn((u"光强"), format=wx.LIST_FORMAT_CENTER, width=70)
+        self.ListCtrl7.AppendColumn((u"环境温度"), format=wx.LIST_FORMAT_CENTER, width=70)
+        self.ListCtrl7.AppendColumn((u"环境湿度"), format=wx.LIST_FORMAT_CENTER, width=70)
+        self.ListCtrl7.AppendColumn((u"跨阻阻值"), format=wx.LIST_FORMAT_CENTER, width=70)
+        self.ListCtrl7.AppendColumn((u"故障码"), format=wx.LIST_FORMAT_CENTER, width=70)
+        self.ListCtrl7.AppendColumn((u"校验码"), format=wx.LIST_FORMAT_CENTER, width=70)
+
+        # 页面布局管理
+        self.__do_layout()
+
+    def __do_layout(self):
+        sizer_2 = wx.BoxSizer(wx.VERTICAL)
+        sizer_3 = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, ("")), wx.HORIZONTAL)
+        sizer_4 = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, ("")), wx.HORIZONTAL)
+        sizer_5 = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, ("测试数据")), wx.HORIZONTAL)
+
+        sizer_5.Add(self.ListCtrl7, 0, 0, 0)
+
+        sizer_3.Add((10, 0), 0, 0, 0)
+        sizer_3.Add(self.jump_button, 0, 0, 0)
+
+        sizer_4.Add(sizer_5, 0, 0, 0)
+
+        sizer_2.Add(sizer_3, 0, wx.EXPAND, 0)
+        sizer_2.Add((10, 10), 0, 0, 0)
+        sizer_2.Add(sizer_4, 0, wx.EXPAND, 0)
+
+        # 有可能要修改的位置
+        self.SetSizer(sizer_2)
+
+    def jump_button_op_2(self, event):
+        self.GetParent().switch_panel(self.GetParent().panel1)
+
 class FactoryFrame(wx.Frame):
     def __init__(self, *args, **kwargs):
         kwargs["style"] = kwargs.get("style", 0) | wx.DEFAULT_FRAME_STYLE
@@ -790,15 +925,24 @@ class FactoryFrame(wx.Frame):
 
         self.panel1 = Panel1(self)
         self.panel2 = Panel2(self)
+        self.panel3 = Panel3(self)
 
         self.panel2.Hide()
+        self.panel3.Hide()
 
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(self.panel1, 1, wx.EXPAND)
         sizer.Add(self.panel2, 1, wx.EXPAND)
+        sizer.Add(self.panel3, 1, wx.EXPAND)
 
         self.SetSizer(sizer)
         self.Centre()
+
+        # sys.stderr = RedirectErr(self, PROJECT_ABSOLUTE_PATH)  # 创建一个存放日志文件的对象（存放错误日志）
+        # sys.stdout = RedirectStd(self, PROJECT_ABSOLUTE_PATH)  # 创建一个存放输出文件的对象（存放输出日志）
+
+        # 绑定关闭页面事件
+        self.Bind(wx.EVT_CLOSE, self.close_window)
 
         self.current_panel = self.panel1
 
@@ -817,6 +961,7 @@ class FactoryFrame(wx.Frame):
         pub.subscribe(self.port_update, "serialUpdate")
         # serialdata主题传过来的数据是data_list，data_list为json格式，数据内容是一个列表，data_list[0]为串口接受的收据，data_list[1]对应的串口号
         pub.subscribe(self.port_recieve_data, "serialData")
+        pub.subscribe(self.port_recieve_data1, "serialData1")
 
     def switch_panel(self, new_panel):
         self.current_panel.Hide()
@@ -824,14 +969,215 @@ class FactoryFrame(wx.Frame):
         self.current_panel = new_panel
         self.Layout()
 
-    def port_recieve_data(self, arg1):
-        print("recieve data:{}".format(arg1))
-        # print(arg1[0])
+    def init_excel(self, channel_list):
+        # 初始化一个excel表格
+        self.__excel_handler = file_handler.ExcelHandler(PROJECT_ABSOLUTE_PATH + "\\Result.xlsx")  # Init Excel
+        self.__excel_handler1 = file_handler.ExcelHandler(PROJECT_ABSOLUTE_PATH + "\\Result1.xlsx")
+        rows, columns = self.__excel_handler.get_rows_columns()
+        if rows == 1 and columns == 1:
+            # 设置某一单元格的值
+            for i, emlment in enumerate(channel_list):
+                self.__excel_handler.set_cell_value(1, i+1, emlment)
+                self.__excel_handler1.set_cell_value(1, i + 1, emlment)
+
+    def excel_write(self, rows, result):
+        if self.__excel_handler:
+            # rows, columns = self.__excel_handler.get_rows_columns()
+            # self.__excel_handler.set_cell_value(rows + 1, 1, rows)
+            for i, value in enumerate(result):
+                self.__excel_handler.set_cell_value(rows, i + 1, value)
+
+    def excel_write1(self, rows, result):
+        if self.__excel_handler1:
+            # rows, columns = self.__excel_handler.get_rows_columns()
+            # self.__excel_handler.set_cell_value(rows + 1, 1, rows)
+            for i, value in enumerate(result):
+                self.__excel_handler1.set_cell_value(rows, i + 1, value)
+
+
+    def port_recieve_data1(self, arg1):
+        print("recieve test data:{}".format(arg1))
         # print(type(arg1[0]))
-        if "REPLY" and "DATA" in arg1[0]:
-            json_string = arg1[0]
-            data = json.loads(json_string)
-            data_list = data['REPLY']['DATA']
+        data = arg1[0]
+        nongdu = data[2:8]
+        wavelength = data[9:14]
+        qiya = data[15:22]
+        guangqiang = data[23:28]
+        wendu = data[29:34]
+        shidu = data[35:39]
+        zuzhi = data[40:45]
+        errorcode = data[46:49]
+        checkcode = data[49:51]
+
+        if arg1[1] == 'COM1':
+            self.panel3.ListCtrl7.SetItem(0, 1, nongdu)
+            self.panel3.ListCtrl7.SetItem(0, 2, wavelength)
+            self.panel3.ListCtrl7.SetItem(0, 3, qiya)
+            self.panel3.ListCtrl7.SetItem(0, 4, guangqiang)
+            self.panel3.ListCtrl7.SetItem(0, 5, wendu)
+            self.panel3.ListCtrl7.SetItem(0, 6, shidu)
+            self.panel3.ListCtrl7.SetItem(0, 7, zuzhi)
+            self.panel3.ListCtrl7.SetItem(0, 8, errorcode)
+            self.panel3.ListCtrl7.SetItem(0, 9, checkcode)
+        elif arg1[1] == 'COM2':
+            self.panel3.ListCtrl7.SetItem(1, 1, nongdu)
+            self.panel3.ListCtrl7.SetItem(1, 2, wavelength)
+            self.panel3.ListCtrl7.SetItem(1, 3, qiya)
+            self.panel3.ListCtrl7.SetItem(1, 4, guangqiang)
+            self.panel3.ListCtrl7.SetItem(1, 5, wendu)
+            self.panel3.ListCtrl7.SetItem(1, 6, shidu)
+            self.panel3.ListCtrl7.SetItem(1, 7, zuzhi)
+            self.panel3.ListCtrl7.SetItem(1, 8, errorcode)
+            self.panel3.ListCtrl7.SetItem(1, 9, checkcode)
+        elif arg1[1] == 'COM3':
+            self.panel3.ListCtrl7.SetItem(2, 1, nongdu)
+            self.panel3.ListCtrl7.SetItem(2, 2, wavelength)
+            self.panel3.ListCtrl7.SetItem(2, 3, qiya)
+            self.panel3.ListCtrl7.SetItem(2, 4, guangqiang)
+            self.panel3.ListCtrl7.SetItem(2, 5, wendu)
+            self.panel3.ListCtrl7.SetItem(2, 6, shidu)
+            self.panel3.ListCtrl7.SetItem(2, 7, zuzhi)
+            self.panel3.ListCtrl7.SetItem(2, 8, errorcode)
+            self.panel3.ListCtrl7.SetItem(2, 9, checkcode)
+        elif arg1[1] == 'COM4':
+            self.panel3.ListCtrl7.SetItem(3, 1, nongdu)
+            self.panel3.ListCtrl7.SetItem(3, 2, wavelength)
+            self.panel3.ListCtrl7.SetItem(3, 3, qiya)
+            self.panel3.ListCtrl7.SetItem(3, 4, guangqiang)
+            self.panel3.ListCtrl7.SetItem(3, 5, wendu)
+            self.panel3.ListCtrl7.SetItem(3, 6, shidu)
+            self.panel3.ListCtrl7.SetItem(3, 7, zuzhi)
+            self.panel3.ListCtrl7.SetItem(3, 8, errorcode)
+            self.panel3.ListCtrl7.SetItem(3, 9, checkcode)
+        elif arg1[1] == 'COM5':
+            self.panel3.ListCtrl7.SetItem(4, 1, nongdu)
+            self.panel3.ListCtrl7.SetItem(4, 2, wavelength)
+            self.panel3.ListCtrl7.SetItem(4, 3, qiya)
+            self.panel3.ListCtrl7.SetItem(4, 4, guangqiang)
+            self.panel3.ListCtrl7.SetItem(4, 5, wendu)
+            self.panel3.ListCtrl7.SetItem(4, 6, shidu)
+            self.panel3.ListCtrl7.SetItem(4, 7, zuzhi)
+            self.panel3.ListCtrl7.SetItem(4, 8, errorcode)
+            self.panel3.ListCtrl7.SetItem(4, 9, checkcode)
+        elif arg1[1] == 'COM6':
+            self.panel3.ListCtrl7.SetItem(5, 1, nongdu)
+            self.panel3.ListCtrl7.SetItem(5, 2, wavelength)
+            self.panel3.ListCtrl7.SetItem(5, 3, qiya)
+            self.panel3.ListCtrl7.SetItem(5, 4, guangqiang)
+            self.panel3.ListCtrl7.SetItem(5, 5, wendu)
+            self.panel3.ListCtrl7.SetItem(5, 6, shidu)
+            self.panel3.ListCtrl7.SetItem(5, 7, zuzhi)
+            self.panel3.ListCtrl7.SetItem(5, 8, errorcode)
+            self.panel3.ListCtrl7.SetItem(5, 9, checkcode)
+        elif arg1[1] == 'COM7':
+            self.panel3.ListCtrl7.SetItem(6, 1, nongdu)
+            self.panel3.ListCtrl7.SetItem(6, 2, wavelength)
+            self.panel3.ListCtrl7.SetItem(6, 3, qiya)
+            self.panel3.ListCtrl7.SetItem(6, 4, guangqiang)
+            self.panel3.ListCtrl7.SetItem(6, 5, wendu)
+            self.panel3.ListCtrl7.SetItem(6, 6, shidu)
+            self.panel3.ListCtrl7.SetItem(6, 7, zuzhi)
+            self.panel3.ListCtrl7.SetItem(6, 8, errorcode)
+            self.panel3.ListCtrl7.SetItem(6, 9, checkcode)
+        elif arg1[1] == 'COM8':
+            self.panel3.ListCtrl7.SetItem(7, 1, nongdu)
+            self.panel3.ListCtrl7.SetItem(7, 2, wavelength)
+            self.panel3.ListCtrl7.SetItem(7, 3, qiya)
+            self.panel3.ListCtrl7.SetItem(7, 4, guangqiang)
+            self.panel3.ListCtrl7.SetItem(7, 5, wendu)
+            self.panel3.ListCtrl7.SetItem(7, 6, shidu)
+            self.panel3.ListCtrl7.SetItem(7, 7, zuzhi)
+            self.panel3.ListCtrl7.SetItem(7, 8, errorcode)
+            self.panel3.ListCtrl7.SetItem(7, 9, checkcode)
+        elif arg1[1] == 'COM9':
+            self.panel3.ListCtrl7.SetItem(8, 1, nongdu)
+            self.panel3.ListCtrl7.SetItem(8, 2, wavelength)
+            self.panel3.ListCtrl7.SetItem(8, 3, qiya)
+            self.panel3.ListCtrl7.SetItem(8, 4, guangqiang)
+            self.panel3.ListCtrl7.SetItem(8, 5, wendu)
+            self.panel3.ListCtrl7.SetItem(8, 6, shidu)
+            self.panel3.ListCtrl7.SetItem(8, 7, zuzhi)
+            self.panel3.ListCtrl7.SetItem(8, 8, errorcode)
+            self.panel3.ListCtrl7.SetItem(8, 9, checkcode)
+        elif arg1[1] == 'COM10':
+            self.panel3.ListCtrl7.SetItem(9, 1, nongdu)
+            self.panel3.ListCtrl7.SetItem(9, 2, wavelength)
+            self.panel3.ListCtrl7.SetItem(9, 3, qiya)
+            self.panel3.ListCtrl7.SetItem(9, 4, guangqiang)
+            self.panel3.ListCtrl7.SetItem(9, 5, wendu)
+            self.panel3.ListCtrl7.SetItem(9, 6, shidu)
+            self.panel3.ListCtrl7.SetItem(9, 7, zuzhi)
+            self.panel3.ListCtrl7.SetItem(9, 8, errorcode)
+            self.panel3.ListCtrl7.SetItem(9, 9, checkcode)
+        elif arg1[1] == 'COM11':
+            self.panel3.ListCtrl7.SetItem(10, 1, nongdu)
+            self.panel3.ListCtrl7.SetItem(10, 2, wavelength)
+            self.panel3.ListCtrl7.SetItem(10, 3, qiya)
+            self.panel3.ListCtrl7.SetItem(10, 4, guangqiang)
+            self.panel3.ListCtrl7.SetItem(10, 5, wendu)
+            self.panel3.ListCtrl7.SetItem(10, 6, shidu)
+            self.panel3.ListCtrl7.SetItem(10, 7, zuzhi)
+            self.panel3.ListCtrl7.SetItem(10, 8, errorcode)
+            self.panel3.ListCtrl7.SetItem(10, 9, checkcode)
+        elif arg1[1] == 'COM12':
+            self.panel3.ListCtrl7.SetItem(11, 1, nongdu)
+            self.panel3.ListCtrl7.SetItem(11, 2, wavelength)
+            self.panel3.ListCtrl7.SetItem(11, 3, qiya)
+            self.panel3.ListCtrl7.SetItem(11, 4, guangqiang)
+            self.panel3.ListCtrl7.SetItem(11, 5, wendu)
+            self.panel3.ListCtrl7.SetItem(11, 6, shidu)
+            self.panel3.ListCtrl7.SetItem(11, 7, zuzhi)
+            self.panel3.ListCtrl7.SetItem(11, 8, errorcode)
+            self.panel3.ListCtrl7.SetItem(11, 9, checkcode)
+        elif arg1[1] == 'COM13':
+            self.panel3.ListCtrl7.SetItem(12, 1, nongdu)
+            self.panel3.ListCtrl7.SetItem(12, 2, wavelength)
+            self.panel3.ListCtrl7.SetItem(12, 3, qiya)
+            self.panel3.ListCtrl7.SetItem(12, 4, guangqiang)
+            self.panel3.ListCtrl7.SetItem(12, 5, wendu)
+            self.panel3.ListCtrl7.SetItem(12, 6, shidu)
+            self.panel3.ListCtrl7.SetItem(12, 7, zuzhi)
+            self.panel3.ListCtrl7.SetItem(12, 8, errorcode)
+            self.panel3.ListCtrl7.SetItem(12, 9, checkcode)
+        elif arg1[1] == 'COM14':
+            self.panel3.ListCtrl7.SetItem(13, 1, nongdu)
+            self.panel3.ListCtrl7.SetItem(13, 2, wavelength)
+            self.panel3.ListCtrl7.SetItem(13, 3, qiya)
+            self.panel3.ListCtrl7.SetItem(13, 4, guangqiang)
+            self.panel3.ListCtrl7.SetItem(13, 5, wendu)
+            self.panel3.ListCtrl7.SetItem(13, 6, shidu)
+            self.panel3.ListCtrl7.SetItem(13, 7, zuzhi)
+            self.panel3.ListCtrl7.SetItem(13, 8, errorcode)
+            self.panel3.ListCtrl7.SetItem(13, 9, checkcode)
+        elif arg1[1] == 'COM15':
+            self.panel3.ListCtrl7.SetItem(14, 1, nongdu)
+            self.panel3.ListCtrl7.SetItem(14, 2, wavelength)
+            self.panel3.ListCtrl7.SetItem(14, 3, qiya)
+            self.panel3.ListCtrl7.SetItem(14, 4, guangqiang)
+            self.panel3.ListCtrl7.SetItem(14, 5, wendu)
+            self.panel3.ListCtrl7.SetItem(14, 6, shidu)
+            self.panel3.ListCtrl7.SetItem(14, 7, zuzhi)
+            self.panel3.ListCtrl7.SetItem(14, 8, errorcode)
+            self.panel3.ListCtrl7.SetItem(14, 9, checkcode)
+        elif arg1[1] == 'COM16':
+            self.panel3.ListCtrl7.SetItem(15, 1, nongdu)
+            self.panel3.ListCtrl7.SetItem(15, 2, wavelength)
+            self.panel3.ListCtrl7.SetItem(15, 3, qiya)
+            self.panel3.ListCtrl7.SetItem(15, 4, guangqiang)
+            self.panel3.ListCtrl7.SetItem(15, 5, wendu)
+            self.panel3.ListCtrl7.SetItem(15, 6, shidu)
+            self.panel3.ListCtrl7.SetItem(15, 7, zuzhi)
+            self.panel3.ListCtrl7.SetItem(15, 8, errorcode)
+            self.panel3.ListCtrl7.SetItem(15, 9, checkcode)
+    def port_recieve_data(self, arg1):
+        print("recieve BD data:{}".format(arg1))
+        # print(type(arg1[0]))
+        BD_dict = arg1[0]
+        data = BD_dict["REPLY"]
+        key_name = data.keys()
+        key_name_list = list(key_name)
+        if "DATA" == key_name_list[0]:
+            data_list = data['DATA']
 
             nongdu = str(data_list[0])
             wavelength = str(data_list[1])
@@ -843,105 +1189,119 @@ class FactoryFrame(wx.Frame):
 
             if arg1[1] == 'COM1':
                 self.panel1.comx_nongdu[0] = nongdu
+                self.panel1.wavelength[0] = wavelength
                 self.panel1.ListCtrl.SetItem(0, 1, nongdu)
                 self.panel1.ListCtrl.SetItem(0, 2, wavelength)
                 self.panel1.ListCtrl.SetItem(0, 3, guangqiang)
                 self.panel1.ListCtrl.SetItem(0, 4, wendu)
             elif arg1[1] == 'COM2':
                 self.panel1.comx_nongdu[1] = nongdu
+                self.panel1.wavelength[1] = wavelength
                 self.panel1.ListCtrl.SetItem(1, 1, nongdu)
                 self.panel1.ListCtrl.SetItem(1, 2, wavelength)
                 self.panel1.ListCtrl.SetItem(1, 3, guangqiang)
                 self.panel1.ListCtrl.SetItem(1, 4, wendu)
             elif arg1[1] == 'COM3':
                 self.panel1.comx_nongdu[2] = nongdu
+                self.panel1.wavelength[2] = wavelength
                 self.panel1.ListCtrl.SetItem(2, 1, nongdu)
                 self.panel1.ListCtrl.SetItem(2, 2, wavelength)
                 self.panel1.ListCtrl.SetItem(2, 3, guangqiang)
                 self.panel1.ListCtrl.SetItem(2, 4, wendu)
             elif arg1[1] == 'COM4':
                 self.panel1.comx_nongdu[3] = nongdu
+                self.panel1.wavelength[3] = wavelength
                 self.panel1.ListCtrl.SetItem(3, 1, nongdu)
                 self.panel1.ListCtrl.SetItem(3, 2, wavelength)
                 self.panel1.ListCtrl.SetItem(3, 3, guangqiang)
                 self.panel1.ListCtrl.SetItem(3, 4, wendu)
             elif arg1[1] == 'COM5':
                 self.panel1.comx_nongdu[4] = nongdu
+                self.panel1.wavelength[4] = wavelength
                 self.panel1.ListCtrl.SetItem(4, 1, nongdu)
                 self.panel1.ListCtrl.SetItem(4, 2, wavelength)
                 self.panel1.ListCtrl.SetItem(4, 3, guangqiang)
                 self.panel1.ListCtrl.SetItem(4, 4, wendu)
             elif arg1[1] == 'COM6':
                 self.panel1.comx_nongdu[5] = nongdu
+                self.panel1.wavelength[5] = wavelength
                 self.panel1.ListCtrl.SetItem(5, 1, nongdu)
                 self.panel1.ListCtrl.SetItem(5, 2, wavelength)
                 self.panel1.ListCtrl.SetItem(5, 3, guangqiang)
                 self.panel1.ListCtrl.SetItem(5, 4, wendu)
             elif arg1[1] == 'COM7':
                 self.panel1.comx_nongdu[6] = nongdu
+                self.panel1.wavelength[6] = wavelength
                 self.panel1.ListCtrl.SetItem(6, 1, nongdu)
                 self.panel1.ListCtrl.SetItem(6, 2, wavelength)
                 self.panel1.ListCtrl.SetItem(6, 3, guangqiang)
                 self.panel1.ListCtrl.SetItem(6, 4, wendu)
             elif arg1[1] == 'COM8':
                 self.panel1.comx_nongdu[7] = nongdu
+                self.panel1.wavelength[7] = wavelength
                 self.panel1.ListCtrl.SetItem(7, 1, nongdu)
                 self.panel1.ListCtrl.SetItem(7, 2, wavelength)
                 self.panel1.ListCtrl.SetItem(7, 3, guangqiang)
                 self.panel1.ListCtrl.SetItem(7, 4, wendu)
             elif arg1[1] == 'COM9':
                 self.panel1.comx_nongdu[8] = nongdu
+                self.panel1.wavelength[8] = wavelength
                 self.panel1.ListCtrl.SetItem(8, 1, nongdu)
                 self.panel1.ListCtrl.SetItem(8, 2, wavelength)
                 self.panel1.ListCtrl.SetItem(8, 3, guangqiang)
                 self.panel1.ListCtrl.SetItem(8, 4, wendu)
             elif arg1[1] == 'COM10':
                 self.panel1.comx_nongdu[9] = nongdu
+                self.panel1.wavelength[9] = wavelength
                 self.panel1.ListCtrl.SetItem(9, 1, nongdu)
                 self.panel1.ListCtrl.SetItem(9, 2, wavelength)
                 self.panel1.ListCtrl.SetItem(9, 3, guangqiang)
                 self.panel1.ListCtrl.SetItem(9, 4, wendu)
             elif arg1[1] == 'COM11':
                 self.panel1.comx_nongdu[10] = nongdu
+                self.panel1.wavelength[10] = wavelength
                 self.panel1.ListCtrl.SetItem(10, 1, nongdu)
                 self.panel1.ListCtrl.SetItem(10, 2, wavelength)
                 self.panel1.ListCtrl.SetItem(10, 3, guangqiang)
                 self.panel1.ListCtrl.SetItem(10, 4, wendu)
             elif arg1[1] == 'COM12':
                 self.panel1.comx_nongdu[11] = nongdu
+                self.panel1.wavelength[11] = wavelength
                 self.panel1.ListCtrl.SetItem(11, 1, nongdu)
                 self.panel1.ListCtrl.SetItem(11, 2, wavelength)
                 self.panel1.ListCtrl.SetItem(11, 3, guangqiang)
-                self.panel1.ListCtrl.SetItem(1, 4, wendu)
+                self.panel1.ListCtrl.SetItem(11, 4, wendu)
             elif arg1[1] == 'COM13':
                 self.panel1.comx_nongdu[12] = nongdu
+                self.panel1.wavelength[12] = wavelength
                 self.panel1.ListCtrl.SetItem(12, 1, nongdu)
                 self.panel1.ListCtrl.SetItem(12, 2, wavelength)
                 self.panel1.ListCtrl.SetItem(12, 3, guangqiang)
                 self.panel1.ListCtrl.SetItem(12, 4, wendu)
             elif arg1[1] == 'COM14':
                 self.panel1.comx_nongdu[13] = nongdu
+                self.panel1.wavelength[13] = wavelength
                 self.panel1.ListCtrl.SetItem(13, 1, nongdu)
                 self.panel1.ListCtrl.SetItem(13, 2, wavelength)
                 self.panel1.ListCtrl.SetItem(13, 3, guangqiang)
                 self.panel1.ListCtrl.SetItem(13, 4, wendu)
             elif arg1[1] == 'COM15':
                 self.panel1.comx_nongdu[14] = nongdu
+                self.panel1.wavelength[14] = wavelength
                 self.panel1.ListCtrl.SetItem(14, 1, nongdu)
                 self.panel1.ListCtrl.SetItem(14, 2, wavelength)
                 self.panel1.ListCtrl.SetItem(14, 3, guangqiang)
                 self.panel1.ListCtrl.SetItem(14, 4, wendu)
             elif arg1[1] == 'COM16':
                 self.panel1.comx_nongdu[15] = nongdu
+                self.panel1.wavelength[15] = wavelength
                 self.panel1.ListCtrl.SetItem(15, 1, nongdu)
                 self.panel1.ListCtrl.SetItem(15, 2, wavelength)
                 self.panel1.ListCtrl.SetItem(15, 3, guangqiang)
                 self.panel1.ListCtrl.SetItem(15, 4, wendu)
 
-        if "REPLY" and "BD_ARRAY" in arg1[0]:
-            json_string = arg1[0]
-            data = json.loads(json_string)
-            data_list = data['REPLY']['BD_ARRAY']
+        if "BD_ARRAY" == key_name_list[0]:
+            data_list = data['BD_ARRAY']
 
             inception_L = str(data_list[0])
             B1_L = str(data_list[1])
@@ -1124,15 +1484,20 @@ class FactoryFrame(wx.Frame):
         port_list = arg1["PortInfo"][:16] if len(arg1["PortInfo"]) > 16 else arg1["PortInfo"]  # 类似于C语言的三目运算符
         if len(port_list) < 16:
             port_list = port_list + [""] * (16 - len(port_list))
+
         if self._channel_list == [] or self._channel_list != port_list:
             self._channel_list = port_list
-            print(self._channel_list)
+            # print(self._channel_list)
+
+            self.init_excel(self._channel_list)
+
             self.panel1.ListCtrl.DeleteAllItems()
             self.panel1.ListCtrl1.DeleteAllItems()
             self.panel1.ListCtrl2.DeleteAllItems()
             self.panel1.ListCtrl3.DeleteAllItems()
             self.panel2.ListCtrl4.DeleteAllItems()
             self.panel2.ListCtrl5.DeleteAllItems()
+            self.panel3.ListCtrl7.DeleteAllItems()
             for i, element in enumerate(self._channel_list):
                 self.panel1.ListCtrl.InsertItem(i, i)
                 self.panel1.ListCtrl1.InsertItem(i, i)
@@ -1155,6 +1520,9 @@ class FactoryFrame(wx.Frame):
                 self.panel2.ListCtrl4.SetItem(i, 2, "")
                 self.panel2.ListCtrl4.SetItem(i, 3, "")
                 self.panel2.ListCtrl4.SetItem(i, 4, "")
+
+                self.panel3.ListCtrl7.InsertItem(i, i)
+                self.panel3.ListCtrl7.SetItem(i, 0, element)
 
         self.message_queue.put({"msg_id": "PortTest"})
 
@@ -1179,7 +1547,7 @@ class FactoryFrame(wx.Frame):
                 message = None
             try:
                 if message:
-                    print("message:{}".format(message))
+                    # print("quene message:{}".format(message))
                     msg_id = message.get("msg_id")
                     if msg_id == "exit":
                         pass
@@ -1243,6 +1611,6 @@ class MyApp(wx.App):
 
 
 if __name__ == "__main__":
-    file_name = os.path.basename(sys.executable)  #  file_name = python.exe
+    file_name = os.path.basename(sys.executable)  #file_name = python.exe
     app = MyApp()
     app.MainLoop()

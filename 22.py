@@ -64,73 +64,100 @@
 #     app = MyApp()
 #     app.MainLoop()
 
+#
+import numpy as np
+
+# 生成一些示例数据
+x = [296993
+,361981
+,470752
+,594500
+,662857
+]
+y = Std_nongdu_h = [200000, 300000, 500000, 800000, 1000000]
+
+# 进行一次多项式拟合
+coefficients = np.polyfit(x, y, 3)
+
+# 打印拟合的系数
+print(coefficients)
+
+
+
+# import numpy as np
+# import openpyxl
+#
+# # 读取Excel文件
+# file_path = r'F:\ZHYQ\www.xlsx'  # 将此路径替换为你的Excel文件路径
+# workbook = openpyxl.load_workbook(file_path)
+# sheet = workbook.active
+#
+# # 获取最大行数和列数
+# max_row = sheet.max_row
+# max_column = sheet.max_column
+#
+# # 初始化一个空的二维列表
+# data_2d_list = [[] for _ in range(max_column)]
+#
+# # 将每列数据添加到对应的二维列表的子列表中，并转换为整数
+# for col in range(1, max_column + 1):
+#     for row in range(1, max_row + 1):
+#         cell_value = sheet.cell(row=row, column=col).value
+#         if cell_value is not None:
+#             try:
+#                 int_value = int(cell_value)
+#                 data_2d_list[col - 1].append(int_value)
+#             except ValueError:
+#                 # 如果转换失败，可以选择记录错误或设置默认值
+#                 data_2d_list[col - 1].append(None)
+#         else:
+#             data_2d_list[col - 1].append(None)
+#
+# print(data_2d_list)
 
 # import numpy as np
 #
-# # 生成一些示例数据
-# x = np.array([0, 1, 2, 3, 4])
-# y = np.array([1.1, 2.0, 2.9, 4.2, 5.1])
+# Std_nongdu_h = [200000, 300000, 500000, 800000, 1000000]
 #
-# # 进行一次多项式拟合
-# coefficients = np.polyfit(x, y, 3)
+# my_list = [[0, 0, 0, 0, 0],
+#            [324192, 399112, 521459, 661799, 735375],
+#            [333788, 408734, 532428, 671437, 747485],
+#            [0, 0, 0, 0, 0],
+#            [333125, 408300, 535225, 673027, 745871],
+#            [324518, 397134, 521771, 655983, 729501],
+#            [298252, 364401, 473446, 596172, 660823],
+#            [293538, 360709, 470783, 590543, 659425],
+#            [321759, 396123, 516639, 653219, 725113],
+#            [320899, 389278, 497701, 626825, 693114],
+#            [321867, 387754, 503296, 627743, 695455],
+#            [296993, 361981, 470752, 594500, 662857],
+#            [329600, 405121, 526826, 668755, 742665],
+#            [323541, 396592, 517498, 655046, 725661],
+#            [316758, 385543, 502119, 630398, 699313],
+#            [293290, 358655, 468401, 593245, 657374]]
 #
-# # 打印拟合的系数
+# my_array = np.array(my_list)
+# y = np.array(Std_nongdu_h)
+#
+# coefficients = []
+# coefficients1 = []
+#
+# for i in range(16):
+#     if np.all(my_array[i] == 0):
+#         print("com_matrix[{}]全0".format(i))
+#     else:
+#         coef = np.polyfit(my_array[i], y, 3)
+#         coef1 = list(reversed(coef))
+#         coefficients.append(coef)
+#         coefficients1.append(coef1)
+#
 # print(coefficients)
+# print("********************************************")
+# print(coefficients1)
+# print("********************************************")
+# for i in range(14):
+#     print(coefficients1[i])
 
-
-
-import numpy as np
-import random
-
-
-Std_nongdu = [0, 5000, 10000, 30000, 80000, 120000, 200000]
-data_0 = []
-data_05 = []
-data_1 = []
-data_3 = []
-data_8 = []
-data_12 = []
-data_20 = []
-
-y = np.array(Std_nongdu)
-def shuzu(shuzu):
-    for _ in range(16):
-        shuzu.append(random.randint(1, 100))
-
-shuzu(data_0)
-shuzu(data_05)
-shuzu(data_1)
-shuzu(data_3)
-shuzu(data_8)
-shuzu(data_12)
-shuzu(data_20)
-
-print(data_0)
-print(data_05)
-print(data_1)
-print(data_3)
-print(data_8)
-print(data_12)
-print(data_20)
-
-com_matrix = np.zeros((16, 7))
-fit_coefficients_matrix = np.zeros((16, 4))
-print(com_matrix)
-
-for i in range(16):
-    com_matrix[i][0] = data_0[i]
-    com_matrix[i][1] = data_05[i]
-    com_matrix[i][2] = data_1[i]
-    com_matrix[i][3] = data_3[i]
-    com_matrix[i][4] = data_8[i]
-    com_matrix[i][5] = data_12[i]
-    com_matrix[i][6] = data_20[i]
-print(com_matrix)
-
-for i in range(16):
-    fit_coefficients_matrix[i] = np.polyfit(com_matrix[i], y, 3)
-print(fit_coefficients_matrix)
-print(len(fit_coefficients_matrix[0]))
 
 # import wx
 #

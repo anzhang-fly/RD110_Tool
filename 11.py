@@ -1,10 +1,10 @@
-import serial.tools.list_ports
-
-port_list = []
-port = serial.tools.list_ports.comports()
-for p in list(port):
-    port_list.append(p.device)
-print(port_list)
+# import serial.tools.list_ports
+#
+# port_list = []
+# port = serial.tools.list_ports.comports()
+# for p in list(port):
+#     port_list.append(p.device)
+# print(port_list)
 
 import serial
 import threading
@@ -81,64 +81,78 @@ import time
 # json_string = json.dumps(data)
 # print(json_string)
 
-import wx
-import wx.lib.mixins.listctrl as listmix
+# import wx
+# import wx.lib.mixins.listctrl as listmix
+#
+#
+# class EditableListCtrl(wx.ListCtrl, listmix.TextEditMixin):
+#     def __init__(self, parent):
+#         wx.ListCtrl.__init__(self, parent, style=wx.LC_REPORT)
+#         listmix.TextEditMixin.__init__(self)
+#
+#
+# class MyFrame(wx.Frame):
+#     def __init__(self, parent, title):
+#         super(MyFrame, self).__init__(parent, title=title, size=(400, 300))
+#
+#         panel = wx.Panel(self)
+#         sizer = wx.BoxSizer(wx.VERTICAL)
+#
+#         self.list_ctrl = EditableListCtrl(panel)
+#
+#         # 插入列
+#         self.list_ctrl.InsertColumn(0, 'Column 1')
+#         self.list_ctrl.InsertColumn(1, 'Column 2')
+#         self.list_ctrl.InsertColumn(2, 'Column 3')
+#
+#         # 插入一些数据
+#         for i in range(10):
+#             self.list_ctrl.InsertItem(i, f'Item {i + 1}')
+#             self.list_ctrl.SetItem(i, 1, f'Data {i + 1}-1')
+#             self.list_ctrl.SetItem(i, 2, f'Data {i + 1}-2')
+#
+#         # 创建修改列名的按钮
+#         self.change_column_button = wx.Button(panel, label="Change Column Name")
+#         self.change_column_button.Bind(wx.EVT_BUTTON, self.on_change_column_name)
+#
+#         sizer.Add(self.list_ctrl, 1, wx.EXPAND | wx.ALL, 5)
+#         sizer.Add(self.change_column_button, 0, wx.ALL | wx.CENTER, 5)
+#
+#         panel.SetSizer(sizer)
+#         self.Centre()
+#
+#     def on_change_column_name(self, event):
+#         # 修改列名
+#         new_col_name = "New Column Name"
+#         col_index = 1  # 修改第2列的名称
+#         self.list_ctrl.SetColumn(col_index, wx.ListItem().SetText(new_col_name))
+#         wx.MessageBox(f'Column {col_index + 1} name changed to "{new_col_name}"', 'Info', wx.OK | wx.ICON_INFORMATION)
+#
+#
+# class MyApp(wx.App):
+#     def OnInit(self):
+#         frame = MyFrame(None, title="ListCtrl Example")
+#         frame.Show()
+#         return True
+#
+#
+# if __name__ == '__main__':
+#     app = MyApp()
+#     app.MainLoop()
 
 
-class EditableListCtrl(wx.ListCtrl, listmix.TextEditMixin):
-    def __init__(self, parent):
-        wx.ListCtrl.__init__(self, parent, style=wx.LC_REPORT)
-        listmix.TextEditMixin.__init__(self)
+my_dict = {'REPLY': {'DATA': [1, 1, 21229, 536, 552, 2628, 16197, 16196]}}
 
+a=my_dict["REPLY"]
+key_name = a.keys()
+key_name_list = list(key_name)
+print(key_name_list[0])
+print(type(key_name_list[0]))
+# print(a)
+# print(type(a))
 
-class MyFrame(wx.Frame):
-    def __init__(self, parent, title):
-        super(MyFrame, self).__init__(parent, title=title, size=(400, 300))
-
-        panel = wx.Panel(self)
-        sizer = wx.BoxSizer(wx.VERTICAL)
-
-        self.list_ctrl = EditableListCtrl(panel)
-
-        # 插入列
-        self.list_ctrl.InsertColumn(0, 'Column 1')
-        self.list_ctrl.InsertColumn(1, 'Column 2')
-        self.list_ctrl.InsertColumn(2, 'Column 3')
-
-        # 插入一些数据
-        for i in range(10):
-            self.list_ctrl.InsertItem(i, f'Item {i + 1}')
-            self.list_ctrl.SetItem(i, 1, f'Data {i + 1}-1')
-            self.list_ctrl.SetItem(i, 2, f'Data {i + 1}-2')
-
-        # 创建修改列名的按钮
-        self.change_column_button = wx.Button(panel, label="Change Column Name")
-        self.change_column_button.Bind(wx.EVT_BUTTON, self.on_change_column_name)
-
-        sizer.Add(self.list_ctrl, 1, wx.EXPAND | wx.ALL, 5)
-        sizer.Add(self.change_column_button, 0, wx.ALL | wx.CENTER, 5)
-
-        panel.SetSizer(sizer)
-        self.Centre()
-
-    def on_change_column_name(self, event):
-        # 修改列名
-        new_col_name = "New Column Name"
-        col_index = 1  # 修改第2列的名称
-        self.list_ctrl.SetColumn(col_index, wx.ListItem().SetText(new_col_name))
-        wx.MessageBox(f'Column {col_index + 1} name changed to "{new_col_name}"', 'Info', wx.OK | wx.ICON_INFORMATION)
-
-
-class MyApp(wx.App):
-    def OnInit(self):
-        frame = MyFrame(None, title="ListCtrl Example")
-        frame.Show()
-        return True
-
-
-if __name__ == '__main__':
-    app = MyApp()
-    app.MainLoop()
-
+# b = my_dict["REPLY"]["DATA"]
+# print(b)
+# print(type(b))
 
 
